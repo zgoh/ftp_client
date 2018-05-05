@@ -1,0 +1,9 @@
+{
+	"name": "ftp_client",
+	"authors": [
+		"Goh Zi He"
+	],
+	"description": "FTP Client",
+	"copyright": "Copyright © 2018, Goh Zi He",
+	"license": "MIT"
+}
