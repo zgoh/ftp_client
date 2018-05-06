@@ -25,13 +25,12 @@ void connect(string ftp_address)
         writeln("Already connected");
         return;
     }
-    
-    auto socket = new TcpSocket();
+
+
+    TcpSocket socket = new TcpSocket();
     session.socket = &socket;
 
-    Address[] addresses = getAddress(ftp_address, 80);
-
-    assert(session.socket.isAlive);
+    assert(socket.isAlive);
 
 
     session.connected = true;

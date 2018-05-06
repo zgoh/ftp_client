@@ -7,7 +7,7 @@ void main()
     writeln("FTP client started");
 
     // Get FTP address
-    connect("ftp://localhost");
+    connect("localhost");
 
     // Login
     // List files
