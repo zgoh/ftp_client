@@ -33,7 +33,7 @@ void command_line()
         isValidCommand = false;
 
         write("ftp> ");
-        
+
         // Split string delimited by spaces
         auto lines = toLower(readln()).split();
         input = lines[0];
@@ -82,4 +82,5 @@ static void invalid_command()
 static void test()
 {
     writeln(args);
+    test_socket();
 }
