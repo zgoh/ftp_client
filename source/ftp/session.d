@@ -31,7 +31,7 @@ void connect(string ftp_address)
     writeln("Connected");
 }
 
-void test()
+void test_socket()
 {
     const auto sent = socket.send("aaaa");
     writeln(sent);

@@ -14,8 +14,11 @@ struct command_pair
 
 const static command_pair[] commands = [
     command_pair(["quit", "bye"], &quit),
-    command_pair(["help"], &help)
+    command_pair(["help"], &help),
+    command_pair(["test"], &test)
 ];
+
+string[] args;
 
 void command_line()
 {
@@ -26,10 +29,15 @@ void command_line()
 
     while (running)
     {
+        args.length = 0;
         isValidCommand = false;
 
         write("ftp> ");
-        input = chomp(toLower(readln()));
+        
+        // Split string delimited by spaces
+        auto lines = toLower(readln()).split();
+        input = lines[0];
+        args = lines[1..lines.length];
         
         foreach (command; commands)
         {
@@ -69,4 +77,9 @@ static void help()
 static void invalid_command()
 {
     writeln("Invalid command.");
+}
+
+static void test()
+{
+    writeln(args);
 }
