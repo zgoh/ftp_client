@@ -1,5 +1,6 @@
 import std.socket;
 import std.stdio;
+import std.conv:to;
 
 /** Whether it is connected or not **/
 bool connected;
@@ -11,9 +12,9 @@ TcpSocket socket;
     Connect to the FTP address
     @param ftp_address
 **/ 
-void connect(string ftp_address)
+void connect_session(string ftp_address, string ftp_port = "21")
 {
-    const ushort port = 21;
+    const ushort port = to!ushort(ftp_port);
     if (connected)
     {
         writeln("Already connected");
@@ -64,7 +65,7 @@ void send(string message)
 /**
     Disconnect the current FTP session
 **/
-void disconnect()
+void disconnect_session()
 {
     if (!connected)
     {

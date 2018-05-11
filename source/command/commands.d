@@ -14,7 +14,9 @@ struct command_pair
 
 const static command_pair[] commands = [
     command_pair(["quit", "bye"], &quit),
-    command_pair(["help"], &help),
+    command_pair(["help", "?"], &help),
+    command_pair(["open"], &open),
+    command_pair(["disconnect"], &disconnect),
     command_pair(["test"], &test)
 ];
 
@@ -56,8 +58,12 @@ void command_line()
     }
 }
 
-/**
+/*
  * All commands are implemented below
+ */
+
+/*
+ * Quit the client
  */
 
 static void quit()
@@ -67,11 +73,55 @@ static void quit()
     running = false;
 }
 
+/*
+ * Print the help message
+ */
 static void help()
 {
     writeln("Commands may be abbreviated. Commands are:");
     writeln();
-    writeln("bye quit help");
+    writeln("? bye help open quit");
+}
+
+/*
+ * Open a new connection to a FTP host
+ */
+static void open()
+{
+    if (isConnected())
+    {
+        writeln("Already connected to ", "something");
+        return;
+    }
+
+    if (args.length == 0)
+    {
+        // Get args
+        writef("To ");
+        auto input = split(strip(readln()));
+        if (input.length == 0)
+        {
+            writeln("Usage: open host name [port]");
+            return;
+        }
+
+        args = input;
+        assert(args.length < 3);
+
+        if (args.length == 1)
+        {
+            connect_session(args[0]);
+            return;
+        }
+    }
+
+    // Send connection request
+    connect_session(args[0], args[1]);
+}
+
+static void disconnect()
+{
+    disconnect_session();
 }
 
 static void invalid_command()
