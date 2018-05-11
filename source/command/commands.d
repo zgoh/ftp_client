@@ -18,7 +18,7 @@ const static command_pair[] commands = [
     command_pair(["test"], &test)
 ];
 
-string[] args;
+static string[] args;
 
 void command_line()
 {
