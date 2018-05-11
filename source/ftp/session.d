@@ -46,6 +46,21 @@ void test_socket()
     writef("%s\n", buffer[0..data_len]);
 }
 
+void send(string message)
+{
+    const auto sent = socket.send(message);
+    // writeln(sent);
+
+    if (sent == Socket.ERROR)
+    {
+        writeln("Sending error");
+    }
+
+    char[1024] buffer;
+    const auto data_len = socket.receive(buffer);
+    writef("%s\n", buffer[0..data_len]);
+}
+
 /**
     Disconnect the current FTP session
 **/

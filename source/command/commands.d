@@ -25,8 +25,6 @@ void command_line()
     string input;
     bool isValidCommand;
 
-    connect("localhost");
-
     while (running)
     {
         args.length = 0;
@@ -56,9 +54,11 @@ void command_line()
             invalid_command();
         }
     }
-
-    disconnect();
 }
+
+/**
+ * All commands are implemented below
+ */
 
 static void quit()
 {

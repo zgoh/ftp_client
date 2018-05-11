@@ -11,16 +11,5 @@ void main(string[] args)
 
     if (args.length == 1)
         command_line();
-
-    // // Get FTP address
-    // connect("localhost");
-
-    // test();
-
-    // // Login
-    // // List files
-    // // File ops
-    // // Disconnect
-    // disconnect();
 }
 
