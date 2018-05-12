@@ -13,11 +13,12 @@ struct command_pair
 }
 
 const static command_pair[] commands = [
-    command_pair(["quit", "bye"], &quit),
-    command_pair(["help", "?"], &help),
-    command_pair(["open"], &open),
-    command_pair(["disconnect"], &disconnect),
-    command_pair(["test"], &test)
+    command_pair(["quit", "bye"], &cmd_quit),
+    command_pair(["help", "?"], &cmd_help),
+    command_pair(["open"], &cmd_open),
+    command_pair(["disconnect"], &cmd_disconnect),
+    command_pair(["user"], &cmd_user),
+    command_pair(["test"], &cmd_test)
 ];
 
 static string[] args;
@@ -53,7 +54,7 @@ void command_line()
 
         if (!isValidCommand)
         {
-            invalid_command();
+            cmd_invalid();
         }
     }
 }
@@ -66,7 +67,7 @@ void command_line()
  * Quit the client
  */
 
-static void quit()
+static void cmd_quit()
 {
     writeln("quit");
     
@@ -76,7 +77,7 @@ static void quit()
 /*
  * Print the help message
  */
-static void help()
+static void cmd_help()
 {
     writeln("Commands may be abbreviated. Commands are:");
     writeln();
@@ -86,11 +87,11 @@ static void help()
 /*
  * Open a new connection to a FTP host
  */
-static void open()
+static void cmd_open()
 {
     if (isConnected())
     {
-        writeln("Already connected to ", "something");
+        writeln("Already connected to ", "something", " use disconnect first.");
         return;
     }
 
@@ -107,29 +108,40 @@ static void open()
 
         args = input;
         assert(args.length < 3);
-
-        if (args.length == 1)
-        {
-            connect_session(args[0]);
-            return;
-        }
     }
 
-    // Send connection request
-    connect_session(args[0], args[1]);
+    if (args.length == 1)
+    {
+        connect_session(args[0]);
+    }
+    else
+    {
+        // Send connection request
+        connect_session(args[0], args[1]);
+    }
+
+    if (isConnected())
+    {
+        cmd_user();
+    }
 }
 
-static void disconnect()
+static void cmd_disconnect()
 {
     disconnect_session();
 }
 
-static void invalid_command()
+static void cmd_user()
+{
+    writeln(send_and_recv("USER"));
+}
+
+static void cmd_invalid()
 {
     writeln("Invalid command.");
 }
 
-static void test()
+static void cmd_test()
 {
     writeln(args);
     test_socket();

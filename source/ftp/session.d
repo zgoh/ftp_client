@@ -47,7 +47,7 @@ void test_socket()
     writef("%s\n", buffer[0..data_len]);
 }
 
-void send(string message)
+string send_and_recv(string message)
 {
     const auto sent = socket.send(message);
     // writeln(sent);
@@ -59,7 +59,8 @@ void send(string message)
 
     char[1024] buffer;
     const auto data_len = socket.receive(buffer);
-    writef("%s\n", buffer[0..data_len]);
+
+    return to!string(buffer[0..data_len]);
 }
 
 /**
