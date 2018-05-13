@@ -10,7 +10,8 @@ TcpSocket socket;
 
 /**
     Connect to the FTP address
-    @param ftp_address
+    @param ftp_address the address to connect to
+    @param ftp_port the port to connect to
 **/ 
 void connect_session(string ftp_address, string ftp_port = "21")
 {
@@ -32,17 +33,22 @@ void connect_session(string ftp_address, string ftp_port = "21")
     writeln("Connected");
 
     char[1024] buffer;
-    const auto data_len = socket.receive(buffer);
+    const long data_len = socket.receive(buffer);
     if (data_len > 0)
         writef("%s", buffer[0..data_len]);
 }
 
+/**
+    Send some message and recv something back
+    @param message the message to send
+    @return message sent from the server
+**/
 string send_and_recv(string message)
 {
-    writef("Sending %s\n", message);
+    writef("Sending %s\\n\n", message);
     // Note: When sending message to FTP server, always append
     // \n to the message
-    const auto sent = socket.send(message ~ "\n");
+    const long sent = socket.send(message ~ "\n");
     writeln(sent);
 
     if (sent == Socket.ERROR)
@@ -80,7 +86,9 @@ void disconnect_session()
 }
 
 /**
-*/
+    Whether the session is connected
+    @return true if socket is connected
+**/
 bool isConnected()
 {
     return connected;

@@ -12,4 +12,3 @@ void main(string[] args)
     if (args.length == 1)
         command_line();
 }
-

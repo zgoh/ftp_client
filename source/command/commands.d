@@ -4,25 +4,38 @@ import std.stdio;
 
 import session;
 
+/** Flags for command line running status **/
 static bool running = true;
 
-struct command_pair
+/** The args supplied to the commands **/
+static string[] command_args;
+
+/** Map the commands to the function to call **/
+struct CommandPair
 {
-    string[] names;
+    /** Name of the command **/
+    string[] name;
+
+    /** The corresponding function to call **/
     void function() fp;
 }
 
-const static command_pair[] commands = [
-    command_pair(["quit", "bye"], &cmd_quit),
-    command_pair(["help", "?"], &cmd_help),
-    command_pair(["open"], &cmd_open),
-    command_pair(["disconnect"], &cmd_disconnect),
-    command_pair(["user"], &cmd_user),
-    command_pair(["test"], &cmd_test)
+/** All FTP command line commands are registered here **/
+const static CommandPair[] commands = [
+    CommandPair(["quit", "bye"], &cmd_quit),
+    CommandPair(["help", "?"], &cmd_help),
+    CommandPair(["open"], &cmd_open),
+    CommandPair(["disconnect"], &cmd_disconnect),
+    CommandPair(["user"], &cmd_user),
+    CommandPair(["test"], &cmd_test)
 ];
 
-static string[] args;
-
+/**
+    Where all the command line logic is,
+    - Getting input.
+    - Process input and call the corresponding command functions.
+    - Run until quit commands is send,
+**/
 void command_line()
 {
     string input;
@@ -30,19 +43,19 @@ void command_line()
 
     while (running)
     {
-        args.length = 0;
+        command_args.length = 0;
         isValidCommand = false;
 
         write("ftp> ");
 
         // Split string delimited by spaces
-        auto lines = toLower(readln()).split();
+        string[] lines = toLower(readln()).split();
         input = lines[0];
-        args = lines[1..lines.length];
+        command_args = lines[1..lines.length];
         
         foreach (command; commands)
         {
-            foreach (name; command.names)
+            foreach (name; command.name)
             {
                 if (input.cmp(name) == 0)
                 {
@@ -63,10 +76,9 @@ void command_line()
  * All commands are implemented below
  */
 
-/*
- * Quit the client
- */
-
+/**
+    Quit the client
+**/
 static void cmd_quit()
 {
     writeln("quit");
@@ -74,9 +86,9 @@ static void cmd_quit()
     running = false;
 }
 
-/*
- * Print the help message
- */
+/**
+    Print the help message
+**/
 static void cmd_help()
 {
     writeln("Commands may be abbreviated. Commands are:");
@@ -84,9 +96,9 @@ static void cmd_help()
     writeln("? bye help open quit");
 }
 
-/*
- * Open a new connection to a FTP host
- */
+/**
+    Open a new connection to a FTP host
+**/
 static void cmd_open()
 {
     if (isConnected())
@@ -95,29 +107,28 @@ static void cmd_open()
         return;
     }
 
-    if (args.length == 0)
+    if (command_args.length == 0)
     {
-        // Get args
+        // Get args for command
         writef("To ");
-        auto input = split(strip(readln()));
-        if (input.length == 0)
+        command_args = split(strip(readln()));
+        if (command_args.length == 0)
         {
             writeln("Usage: open host name [port]");
             return;
         }
-
-        args = input;
-        assert(args.length < 3);
+        
+        assert(command_args.length < 3);
     }
 
-    if (args.length == 1)
+    if (command_args.length == 1)
     {
-        connect_session(args[0]);
+        connect_session(command_args[0]);
     }
     else
     {
         // Send connection request
-        connect_session(args[0], args[1]);
+        connect_session(command_args[0], command_args[1]);
     }
 
     if (isConnected())
@@ -126,26 +137,38 @@ static void cmd_open()
     }
 }
 
+/**
+    Disconnect the session
+**/
 static void cmd_disconnect()
 {
     disconnect_session();
 }
 
+/**
+    Send user command to the FTP server
+**/
 static void cmd_user()
 {
     //writeln(send_and_recv("USER"));
 }
 
+/**
+    Invalid command entered.
+**/
 static void cmd_invalid()
 {
     writeln("Invalid command.");
 }
 
+/**
+    NOTE: For testing only
+**/
 static void cmd_test()
 {
-    writeln(args);
-    if (args.length == 1)
+    writeln(command_args);
+    if (command_args.length == 1)
     {
-        write(send_and_recv(args[0]));
+        write(send_and_recv(command_args[0]));
     }
 }
