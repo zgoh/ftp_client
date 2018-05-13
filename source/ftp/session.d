@@ -25,16 +25,24 @@ void connect_session(string ftp_address, string ftp_port = "21")
 
     assert(socket.isAlive);
     socket.blocking(true);
-
+    
     socket.connect(new InternetAddress(ftp_address, port));
 
     connected = true;
     writeln("Connected");
+
+    char[1024] buffer;
+    const auto data_len = socket.receive(buffer);
+    if (data_len > 0)
+        writef("%s", buffer[0..data_len]);
 }
 
-void test_socket()
+string send_and_recv(string message)
 {
-    const auto sent = socket.send("aaaa");
+    writef("Sending %s\n", message);
+    // Note: When sending message to FTP server, always append
+    // \n to the message
+    const auto sent = socket.send(message ~ "\n");
     writeln(sent);
 
     if (sent == Socket.ERROR)
@@ -43,24 +51,15 @@ void test_socket()
     }
 
     char[1024] buffer;
-    const auto data_len = socket.receive(buffer);
-    writef("%s\n", buffer[0..data_len]);
-}
-
-string send_and_recv(string message)
-{
-    const auto sent = socket.send(message);
-    // writeln(sent);
-
-    if (sent == Socket.ERROR)
+    long data_len;
+    string output;
+    do
     {
-        writeln("Sending error");
-    }
+        data_len = socket.receive(buffer);
+        output ~= buffer[0..data_len];
+    } while (data_len == 0);
 
-    char[1024] buffer;
-    const auto data_len = socket.receive(buffer);
-
-    return to!string(buffer[0..data_len]);
+    return output;
 }
 
 /**

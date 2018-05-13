@@ -133,7 +133,7 @@ static void cmd_disconnect()
 
 static void cmd_user()
 {
-    writeln(send_and_recv("USER"));
+    //writeln(send_and_recv("USER"));
 }
 
 static void cmd_invalid()
@@ -144,5 +144,8 @@ static void cmd_invalid()
 static void cmd_test()
 {
     writeln(args);
-    test_socket();
+    if (args.length == 1)
+    {
+        write(send_and_recv(args[0]));
+    }
 }
