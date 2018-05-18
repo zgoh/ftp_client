@@ -43,7 +43,7 @@ void command_line()
 
     while (running)
     {
-        command_args.length = 0;
+        clear_args();
         isValidCommand = false;
 
         write("ftp> ");
@@ -70,6 +70,11 @@ void command_line()
             cmd_invalid();
         }
     }
+}
+
+void clear_args()
+{
+    command_args.length = 0;
 }
 
 /*
@@ -133,6 +138,7 @@ static void cmd_open()
 
     if (isConnected())
     {
+        clear_args();
         cmd_user();
     }
 }
@@ -150,7 +156,32 @@ static void cmd_disconnect()
 **/
 static void cmd_user()
 {
-    //writeln(send_and_recv("USER"));
+    string user;
+    string pass;
+
+    if (command_args.length == 2)
+    {
+        user = command_args[0];
+        pass = command_args[1];
+    }
+    else
+    {
+        writef("USER: ");
+        user = readln();
+
+        //TODO: Hide password and typing
+        writef("PASS: ");
+        pass= readln();
+    }
+
+    clear_args();
+
+    string message = "USER " ~ user;
+    writeln(send_and_recv(message));
+
+    //TODO: Hide password when sending
+    message = "PASS " ~ pass;
+    writeln(send_and_recv(message));
 }
 
 /**
