@@ -72,6 +72,9 @@ void command_line()
     }
 }
 
+/**
+    Clear the aguments length
+**/
 void clear_args()
 {
     command_args.length = 0;
@@ -86,8 +89,11 @@ void clear_args()
 **/
 static void cmd_quit()
 {
-    writeln("quit");
-    
+    // Send bye to FTP server
+    if (isConnected())
+    {
+        write(send_and_recv("QUIT\n"));
+    }
     running = false;
 }
 
@@ -163,25 +169,28 @@ static void cmd_user()
     {
         user = command_args[0];
         pass = command_args[1];
+        clear_args();
     }
-    else
+
+    if (user == null)
     {
         writef("USER: ");
         user = readln();
+    }
 
+    string message = "USER " ~ user;
+    writef(send_and_recv(message));
+
+    if (pass == null)
+    {
         //TODO: Hide password and typing
         writef("PASS: ");
         pass= readln();
     }
-
-    clear_args();
-
-    string message = "USER " ~ user;
-    writeln(send_and_recv(message));
-
+    
     //TODO: Hide password when sending
     message = "PASS " ~ pass;
-    writeln(send_and_recv(message));
+    writef(send_and_recv(message));
 }
 
 /**

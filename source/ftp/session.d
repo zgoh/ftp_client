@@ -45,11 +45,11 @@ void connect_session(string ftp_address, string ftp_port = "21")
 **/
 string send_and_recv(string message)
 {
-    writef("Sending %s\\n\n", message);
+    // writef("Sending %s\\n\n", message);
     // Note: When sending message to FTP server, always append
     // \n to the message
     const long sent = socket.send(message ~ "\n");
-    writeln(sent);
+    // writeln(sent);
 
     if (sent == Socket.ERROR)
     {
