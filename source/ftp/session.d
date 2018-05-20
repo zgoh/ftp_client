@@ -2,69 +2,67 @@ import std.socket;
 import std.stdio;
 import std.conv:to;
 
-// enum FTP_Mode
-// {
-//     PASSIVE,
-//     PORT
-// }
-
-// struct FTP_Session
-// {
-//     bool connected = false;
-//     TcpSocket command = null;
-//     TcpSocket data = null;
-//     Mode mode = Mode.PORT;
-// }
-
-// void session_connect(ref Session session, string address, string port)
-// {
-
-// }
-
-/** Whether it is connected or not **/
-static bool connected;
+/** Current supported FTP mode are active/passive **/
+enum FTP_Mode
+{
+    ACTIVE,
+    PASSIVE
+}
 
 /** FTP protocols have two sockets, command and data **/
 /** Connected to the command **/
-static TcpSocket commandSocket;
+static TcpSocket commandSocket = null;
 
 /** Is connected to the data port of the FTP server **/
-static TcpSocket dataSocket;
+static TcpSocket dataSocket = null;
 
+/** Data port which is used to listen on **/
+// TODO: Randomize this port?
 static const ushort dataPort = 40_193;
+
+/** Current FTP mode is default to ACTIVE **/
+static FTP_Mode mode = FTP_Mode.ACTIVE;
 
 /**
     Connect to the FTP address
     @param ftp_address the address to connect to
     @param ftp_port the port to connect to
 **/ 
-void session_connect(string ftp_address, string ftp_port = "21")
+void session_connect(string address, string port = "21")
 {
-    const ushort port = to!ushort(ftp_port);
-    if (connected)
+    if (session_isConnected())
     {
         writeln("Already connected");
         return;
     }
 
+    /** Create a new command channel **/
     commandSocket = new TcpSocket;
-    dataSocket = new TcpSocket;
-
     assert(commandSocket.isAlive);
-    assert(dataSocket.isAlive);
 
     commandSocket.blocking(true);
+    commandSocket.connect(new InternetAddress(address, to!ushort(port)));
+
+    //connected = true;
+    //writeln("Connected");
+
+    session_command_recv();
+}
+
+void session_active_mode()
+{
+    if (dataSocket)
+    {
+        return;
+    }
+
+    dataSocket = new TcpSocket;
+    assert(dataSocket.isAlive);
+
     dataSocket.blocking(true);
-    
-    commandSocket.connect(new InternetAddress(ftp_address, port));
 
     dataSocket.bind(new InternetAddress(dataPort));
     dataSocket.listen(1);
-
-    connected = true;
-    writeln("Connected");
-
-    session_command_recv();
 }
 
 /**
@@ -146,7 +144,7 @@ void session_data_recv()
 **/
 void session_disconnect()
 {
-    if (!connected)
+    if (!session_isConnected())
     {
         return;
     }
@@ -156,10 +154,14 @@ void session_disconnect()
     commandSocket.shutdown(SocketShutdown.BOTH);
     commandSocket.close();
 
-    dataSocket.shutdown(SocketShutdown.BOTH);
-    dataSocket.close();
+    if (dataSocket !is null)
+    {
+        dataSocket.shutdown(SocketShutdown.BOTH);
+        dataSocket.close();
+    }
 
-    connected = false;
+    commandSocket = null;
+    dataSocket = null;
 }
 
 string session_get_host()
@@ -179,5 +181,6 @@ ushort session_get_data_port()
 **/
 bool session_isConnected()
 {
-    return connected;
+    return commandSocket !is null;
+    //return connected;
 }

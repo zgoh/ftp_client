@@ -216,26 +216,26 @@ static void cmd_list()
     writeln("Listing");
 
     // TODO: Use PORT/PASSIVE mode accordingly
-    switch (currentMode)
-    {
-        case Mode.PASSIVE:
-            break;
+    //switch (currentMode)
+    //{
+        // case Mode.PASSIVE:
+        //     break;
 
-        case Mode.PORT:
-        {
-            // TODO: Get current host info
-            auto host = session_get_host();
-            auto port = session_get_data_port();
+        // case Mode.PORT:
+        // {
+        //     // TODO: Get current host info
+        //     auto host = session_get_host();
+        //     auto port = session_get_data_port();
             
-            session_send_and_recv("PORT 127,0,0,1,157,1");
-            session_send_and_recv("LIST");
-            session_data_recv();
-            session_command_recv();
-        } break;
+        //     session_send_and_recv("PORT 127,0,0,1,157,1");
+        //     session_send_and_recv("LIST");
+        //     session_data_recv();
+        //     session_command_recv();
+        // } break;
 
-        default:
-            break;
-    }
+    //    default:
+    //        break;
+    //}
 }
 
 /**
