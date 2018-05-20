@@ -10,6 +10,12 @@ static bool running = true;
 /** The args supplied to the commands **/
 static string[] command_args;
 
+/** Passive or Port mode **/
+enum Mode{PASSIVE, PORT}
+
+/** The current mode for this ftp **/
+static Mode currentMode = Mode.PORT;
+
 /** Map the commands to the function to call **/
 struct CommandPair
 {
@@ -27,6 +33,7 @@ const static CommandPair[] commands = [
     CommandPair(["open"], &cmd_open),
     CommandPair(["disconnect"], &cmd_disconnect),
     CommandPair(["user"], &cmd_user),
+    CommandPair(["ls"], &cmd_list),
     CommandPair(["test"], &cmd_test)
 ];
 
@@ -49,7 +56,12 @@ void command_line()
         write("ftp> ");
 
         // Split string delimited by spaces
-        string[] lines = toLower(readln()).split();
+        string[] lines = split(toLower(chomp(readln())));
+        if (lines.length < 1)
+        {
+            continue;
+        }
+        
         input = lines[0];
         command_args = lines[1..lines.length];
         
@@ -89,11 +101,7 @@ void clear_args()
 **/
 static void cmd_quit()
 {
-    // Send bye to FTP server
-    if (isConnected())
-    {
-        write(send_and_recv("QUIT\n"));
-    }
+    session_disconnect();
     running = false;
 }
 
@@ -104,7 +112,7 @@ static void cmd_help()
 {
     writeln("Commands may be abbreviated. Commands are:");
     writeln();
-    writeln("? bye help open quit");
+    writeln("? bye help open quit user");
 }
 
 /**
@@ -112,7 +120,7 @@ static void cmd_help()
 **/
 static void cmd_open()
 {
-    if (isConnected())
+    if (session_isConnected())
     {
         writeln("Already connected to ", "something", " use disconnect first.");
         return;
@@ -122,7 +130,7 @@ static void cmd_open()
     {
         // Get args for command
         writef("To ");
-        command_args = split(strip(readln()));
+        command_args = split(strip(chomp(readln())));
         if (command_args.length == 0)
         {
             writeln("Usage: open host name [port]");
@@ -134,15 +142,15 @@ static void cmd_open()
 
     if (command_args.length == 1)
     {
-        connect_session(command_args[0]);
+        session_connect(command_args[0]);
     }
     else
     {
         // Send connection request
-        connect_session(command_args[0], command_args[1]);
+        session_connect(command_args[0], command_args[1]);
     }
 
-    if (isConnected())
+    if (session_isConnected())
     {
         clear_args();
         cmd_user();
@@ -154,7 +162,7 @@ static void cmd_open()
 **/
 static void cmd_disconnect()
 {
-    disconnect_session();
+    session_disconnect();
 }
 
 /**
@@ -169,28 +177,65 @@ static void cmd_user()
     {
         user = command_args[0];
         pass = command_args[1];
-        clear_args();
     }
+    else if (command_args.length == 1)
+    {
+        user = command_args[0];
+    }
+
+    clear_args();
 
     if (user == null)
     {
         writef("USER: ");
-        user = readln();
+        user = chomp(readln());
     }
 
     string message = "USER " ~ user;
-    writef(send_and_recv(message));
+    session_send_and_recv(message);
 
     if (pass == null)
     {
         //TODO: Hide password and typing
         writef("PASS: ");
-        pass= readln();
+        pass= chomp(readln());
     }
     
     //TODO: Hide password when sending
     message = "PASS " ~ pass;
-    writef(send_and_recv(message));
+    session_send_and_recv(message);
+
+    // session_send_and_recv("SYST");
+}
+
+/**
+    List all files on FTP.
+**/
+static void cmd_list()
+{
+    writeln("Listing");
+
+    // TODO: Use PORT/PASSIVE mode accordingly
+    switch (currentMode)
+    {
+        case Mode.PASSIVE:
+            break;
+
+        case Mode.PORT:
+        {
+            // TODO: Get current host info
+            auto host = session_get_host();
+            auto port = session_get_data_port();
+            
+            session_send_and_recv("PORT 127,0,0,1,157,1");
+            session_send_and_recv("LIST");
+            session_data_recv();
+            session_command_recv();
+        } break;
+
+        default:
+            break;
+    }
 }
 
 /**
@@ -209,6 +254,6 @@ static void cmd_test()
     writeln(command_args);
     if (command_args.length == 1)
     {
-        write(send_and_recv(command_args[0]));
+        session_send_and_recv(command_args[0]);
     }
 }
