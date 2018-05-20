@@ -1,6 +1,7 @@
 import std.socket;
 import std.stdio;
 import std.conv:to;
+import std.array:replace;
 
 /** Current supported FTP mode are active/passive **/
 enum FTP_Mode
@@ -43,15 +44,12 @@ void session_connect(string address, string port = "21")
     commandSocket.blocking(true);
     commandSocket.connect(new InternetAddress(address, to!ushort(port)));
 
-    //connected = true;
-    //writeln("Connected");
-
     session_command_recv();
 }
 
 void session_active_mode()
 {
-    if (dataSocket)
+    if (dataSocket !is null)
     {
         return;
     }
@@ -60,7 +58,6 @@ void session_active_mode()
     assert(dataSocket.isAlive);
 
     dataSocket.blocking(true);
-
     dataSocket.bind(new InternetAddress(dataPort));
     dataSocket.listen(1);
 }
@@ -92,7 +89,7 @@ void session_send_and_recv(string message)
     write(output);
 }
 
-void session_send(string message)
+void session_command_send(string message)
 {
     // Note: When sending message to FTP server, always append
     // \r\n to the message
@@ -164,15 +161,23 @@ void session_disconnect()
     dataSocket = null;
 }
 
-string session_get_host()
+string session_getDataAddrPort()
 {
-    writeln(commandSocket.hostName());
-    return commandSocket.hostName();
-}
+    // TODO: Check if it's local/remote address
+    // Note: Do not use dataSocket local address as it is 0.0.0.0
+    const auto address = commandSocket.localAddress().toAddrString();
+    const auto port = to!ushort(dataSocket.localAddress.toPortString());
 
-ushort session_get_data_port()
-{
-    return dataPort;
+    // IP format is
+    // h1,h2,h3,h4,p1,p2
+    // where port = p1 * 256 + p2
+    // https://cr.yp.to/ftp/retr.html
+    const auto p1 = port / 256;
+    const auto p2 = port - p1 * 256;
+
+    // Make the whole string dot separated and then change to comma separated
+    const string portStr = to!string(p1) ~ "." ~ to!string(p2);
+    return (address ~ "." ~ portStr).replace(".", ",");
 }
 
 /**
@@ -182,5 +187,4 @@ ushort session_get_data_port()
 bool session_isConnected()
 {
     return commandSocket !is null;
-    //return connected;
 }

@@ -10,11 +10,8 @@ static bool running = true;
 /** The args supplied to the commands **/
 static string[] command_args;
 
-/** Passive or Port mode **/
-enum Mode{PASSIVE, PORT}
-
 /** The current mode for this ftp **/
-static Mode currentMode = Mode.PORT;
+static FTP_Mode currentMode = FTP_Mode.ACTIVE;
 
 /** Map the commands to the function to call **/
 struct CommandPair
@@ -213,29 +210,37 @@ static void cmd_user()
 **/
 static void cmd_list()
 {
-    writeln("Listing");
+    //writeln("Listing");
 
     // TODO: Use PORT/PASSIVE mode accordingly
-    //switch (currentMode)
-    //{
+    switch (currentMode)
+    {
         // case Mode.PASSIVE:
         //     break;
 
-        // case Mode.PORT:
-        // {
-        //     // TODO: Get current host info
-        //     auto host = session_get_host();
-        //     auto port = session_get_data_port();
-            
-        //     session_send_and_recv("PORT 127,0,0,1,157,1");
-        //     session_send_and_recv("LIST");
-        //     session_data_recv();
-        //     session_command_recv();
-        // } break;
+        case FTP_Mode.ACTIVE:
+        {
+            session_active_mode();
 
-    //    default:
-    //        break;
-    //}
+            const auto message = session_getDataAddrPort();
+            writeln(message);
+            
+            // Send Port command first if active mode
+            session_send_and_recv("PORT " ~ message);
+
+            // Then we send the list command to receive the data
+            session_send_and_recv("LIST");
+
+            // Receive our list from server on data channel
+            session_data_recv();
+
+            // Receive acknowledgemt from server
+            session_command_recv();
+        } break;
+
+        default:
+            break;
+    }
 }
 
 /**
