@@ -15,7 +15,7 @@ I want to create a simple FTP client to connect to my local FTP.
 http://www.nsftools.com/tips/RawFTP.htm
 
 # Reference
-https://cr.yp.to/ftp/retr.html
-http://slacksite.com/other/ftp.html
-https://www.techrepublic.com/article/how-ftp-port-requests-challenge-firewall-security/
-https://superuser.com/questions/801514/in-ftp-what-are-the-differences-between-passive-and-extended-passive-modes
+- https://cr.yp.to/ftp/retr.html
+- http://slacksite.com/other/ftp.html
+- https://www.techrepublic.com/article/how-ftp-port-requests-challenge-firewall-security/
+- https://superuser.com/questions/801514/in-ftp-what-are-the-differences-between-passive-and-extended-passive-modes
