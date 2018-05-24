@@ -130,6 +130,7 @@ void session_disconnect()
 {
     if (!session_isConnected())
     {
+        writeln("Not Connected.");
         return;
     }
 

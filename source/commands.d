@@ -28,7 +28,7 @@ const static CommandPair[] commands = [
     CommandPair(["quit", "bye"], &cmd_quit),
     CommandPair(["help", "?"], &cmd_help),
     CommandPair(["open"], &cmd_open),
-    CommandPair(["disconnect"], &cmd_disconnect),
+    CommandPair(["close", "disconnect"], &cmd_disconnect),
     CommandPair(["user"], &cmd_user),
     CommandPair(["ls"], &cmd_list),
     CommandPair(["cd"], &cmd_change_dir),
@@ -110,7 +110,7 @@ static void cmd_help()
 {
     writeln("Commands may be abbreviated. Commands are:");
     writeln();
-    writeln("? bye help open quit user");
+    writeln("? cd close bye help ls open quit user");
 }
 
 /**
