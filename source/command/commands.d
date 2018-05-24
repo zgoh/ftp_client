@@ -31,6 +31,7 @@ const static CommandPair[] commands = [
     CommandPair(["disconnect"], &cmd_disconnect),
     CommandPair(["user"], &cmd_user),
     CommandPair(["ls"], &cmd_list),
+    CommandPair(["cd"], &cmd_change_dir),
     CommandPair(["test"], &cmd_test)
 ];
 
@@ -189,7 +190,7 @@ static void cmd_user()
     }
 
     string message = "USER " ~ user;
-    session_send_and_recv(message);
+    session_cmd_send_recv(message);
 
     if (pass == null)
     {
@@ -200,9 +201,9 @@ static void cmd_user()
     
     //TODO: Hide password when sending
     message = "PASS " ~ pass;
-    session_send_and_recv(message);
+    session_cmd_send_recv(message);
 
-    // session_send_and_recv("SYST");
+    // session_cmd_send_recv("SYST");
 }
 
 /**
@@ -210,37 +211,59 @@ static void cmd_user()
 **/
 static void cmd_list()
 {
-    //writeln("Listing");
+    if (!session_isConnected())
+        return;
 
-    // TODO: Use PORT/PASSIVE mode accordingly
     switch (currentMode)
     {
-        // case Mode.PASSIVE:
-        //     break;
+        // case FTP_Mode.PASSIVE:
+        // {
+        //     //session_cmd_send();
+        // } break;
 
         case FTP_Mode.ACTIVE:
         {
             session_active_mode();
-
             const auto message = session_getDataAddrPort();
             writeln(message);
             
+            // Note: Window's FTP client actually use EPRT(extended port) rather that PORT
+            // https://superuser.com/questions/801514/in-ftp-what-are-the-differences-between-passive-and-extended-passive-modes
             // Send Port command first if active mode
-            session_send_and_recv("PORT " ~ message);
+            writeln("Send Port");
+            session_cmd_send_recv("PORT " ~ message);
 
             // Then we send the list command to receive the data
-            session_send_and_recv("LIST");
+            // Likewise windows is using NLST instead
+            writeln("Send List");
+            session_cmd_send_recv("LIST");
 
             // Receive our list from server on data channel
+            writeln("Recv List");
             session_data_recv();
 
             // Receive acknowledgemt from server
-            session_command_recv();
+            session_cmd_recv();
+
+            session_data_close();
         } break;
 
         default:
             break;
     }
+}
+
+/**
+    Change directory
+**/
+static void cmd_change_dir()
+{
+    if (command_args.length == 0)
+    {
+        writeln("Command cd [dir]");
+        return;
+    }
+    session_cmd_send_recv("CWD " ~ command_args[0]);
 }
 
 /**
@@ -259,6 +282,6 @@ static void cmd_test()
     writeln(command_args);
     if (command_args.length == 1)
     {
-        session_send_and_recv(command_args[0]);
+        session_cmd_send_recv(command_args[0]);
     }
 }

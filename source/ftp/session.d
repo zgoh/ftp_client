@@ -17,10 +17,6 @@ static TcpSocket commandSocket = null;
 /** Is connected to the data port of the FTP server **/
 static TcpSocket dataSocket = null;
 
-/** Data port which is used to listen on **/
-// TODO: Randomize this port?
-static const ushort dataPort = 40_193;
-
 /** Current FTP mode is default to ACTIVE **/
 static FTP_Mode mode = FTP_Mode.ACTIVE;
 
@@ -44,64 +40,45 @@ void session_connect(string address, string port = "21")
     commandSocket.blocking(true);
     commandSocket.connect(new InternetAddress(address, to!ushort(port)));
 
-    session_command_recv();
+    session_cmd_recv();
 }
 
 void session_active_mode()
 {
-    if (dataSocket !is null)
-    {
-        return;
-    }
-
     dataSocket = new TcpSocket;
     assert(dataSocket.isAlive);
 
     dataSocket.blocking(true);
-    dataSocket.bind(new InternetAddress(dataPort));
+
+    // Using 0 as port number will use a random port assigned by OS.
+    dataSocket.bind(new InternetAddress(0));
     dataSocket.listen(1);
+    writeln("Set active!");
 }
 
 /**
     Send some message and recv something back, will print the recv message
     @param message the message to send
 **/
-void session_send_and_recv(string message)
+void session_cmd_send_recv(string message)
 {
-    // Note: When sending message to FTP server, always append
-    // \r\n to the message
-    writef(message ~ "\r\n");
-    const auto sent = commandSocket.send(message ~ "\r\n");
-    if (sent == Socket.ERROR)
-    {
-        writeln("Sending error");
-    }
-
-    char[1024] buffer;
-    size_t data_len;
-    string output;
-    do
-    {
-        data_len = commandSocket.receive(buffer);
-        output ~= buffer[0..data_len];
-    } while (data_len == 0);
-    
-    write(output);
+    session_cmd_send(message);
+    session_cmd_recv();
 }
 
-void session_command_send(string message)
+void session_cmd_send(string message)
 {
     // Note: When sending message to FTP server, always append
     // \r\n to the message
+    writeln("Sent " ~ message);
     const auto sent = commandSocket.send(message ~ "\r\n");
-
     if (sent == Socket.ERROR)
     {
         writeln("Sending error");
     }
 }
 
-void session_command_recv()
+void session_cmd_recv()
 {
     char[1024] buffer;
     size_t data_len;
@@ -136,6 +113,16 @@ void session_data_recv()
     write(output);
 }
 
+void session_data_close()
+{
+    if (dataSocket !is null)
+    {
+        dataSocket.shutdown(SocketShutdown.BOTH);
+        dataSocket.close();
+    }
+    dataSocket = null;
+}
+
 /**
     Disconnect the current FTP session
 **/
@@ -146,19 +133,13 @@ void session_disconnect()
         return;
     }
 
-    session_send_and_recv("QUIT\r\n");
+    session_cmd_send_recv("QUIT\r\n");
 
     commandSocket.shutdown(SocketShutdown.BOTH);
     commandSocket.close();
-
-    if (dataSocket !is null)
-    {
-        dataSocket.shutdown(SocketShutdown.BOTH);
-        dataSocket.close();
-    }
-
     commandSocket = null;
-    dataSocket = null;
+
+    session_data_close();
 }
 
 string session_getDataAddrPort()
