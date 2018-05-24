@@ -212,7 +212,10 @@ static void cmd_user()
 static void cmd_list()
 {
     if (!session_isConnected())
+    {
+        writeln("Not connected.");
         return;
+    }
 
     switch (currentMode)
     {
