@@ -62,10 +62,10 @@ void session_active_mode()
     Send some message and recv something back, will print the recv message
     @param message the message to send
 **/
-void session_cmd_send_recv(string message, const bool showMessage = true)
+void session_cmd_send_recv(string message)
 {
     session_cmd_send(message);
-    session_cmd_recv(showMessage);
+    session_cmd_recv();
 }
 
 /**
@@ -85,9 +85,8 @@ void session_cmd_send(const string message)
 
 /**
     Receive a message on the command channel
-    @param message The message to send
 **/
-void session_cmd_recv(bool showMessage = true)
+void session_cmd_recv()
 {
     char[1024] buffer;
     size_t data_len;
@@ -100,9 +99,7 @@ void session_cmd_recv(bool showMessage = true)
             output ~= buffer[0..data_len];
         }
     } while (data_len == 0);
-
-    if (showMessage)
-        write(output);
+    write(output);
 }
 
 /**

@@ -232,17 +232,17 @@ static void cmd_list()
             // Note: Window's FTP client actually use EPRT(extended port) rather that PORT
             // https://superuser.com/questions/801514/in-ftp-what-are-the-differences-between-passive-and-extended-passive-modes
             // Send Port command first if active mode
-            session_cmd_send_recv("PORT " ~ message, false);
+            session_cmd_send_recv("PORT " ~ message);
 
             // Then we send the list command to receive the data
             // Likewise windows is using NLST instead
-            session_cmd_send_recv("LIST", false);
+            session_cmd_send_recv("LIST");
 
             // Receive our list from server on data channel
             session_data_recv();
 
             // Receive acknowledgemt from server
-            session_cmd_recv(false);
+            session_cmd_recv();
 
             session_data_close();
         } break;
