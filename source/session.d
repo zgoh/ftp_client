@@ -25,7 +25,7 @@ static FTP_Mode mode = FTP_Mode.ACTIVE;
     @param ftp_address the address to connect to
     @param ftp_port the port to connect to
 **/ 
-void session_connect(string address, string port = "21")
+void session_connect(const string address, const string port = "21")
 {
     if (session_isConnected())
     {
@@ -53,24 +53,22 @@ void session_active_mode()
     // Using 0 as port number will use a random port assigned by OS.
     dataSocket.bind(new InternetAddress(0));
     dataSocket.listen(1);
-    writeln("Set active!");
 }
 
 /**
     Send some message and recv something back, will print the recv message
     @param message the message to send
 **/
-void session_cmd_send_recv(string message)
+void session_cmd_send_recv(string message, const bool showMessage = true)
 {
     session_cmd_send(message);
-    session_cmd_recv();
+    session_cmd_recv(showMessage);
 }
 
-void session_cmd_send(string message)
+void session_cmd_send(const string message)
 {
     // Note: When sending message to FTP server, always append
     // \r\n to the message
-    writeln("Sent " ~ message);
     const auto sent = commandSocket.send(message ~ "\r\n");
     if (sent == Socket.ERROR)
     {
@@ -78,7 +76,7 @@ void session_cmd_send(string message)
     }
 }
 
-void session_cmd_recv()
+void session_cmd_recv(bool showMessage = true)
 {
     char[1024] buffer;
     size_t data_len;
@@ -91,7 +89,9 @@ void session_cmd_recv()
             output ~= buffer[0..data_len];
         }
     } while (data_len == 0);
-    write(output);
+
+    if (showMessage)
+        write(output);
 }
 
 void session_data_recv()
