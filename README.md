@@ -16,25 +16,33 @@ http://www.nsftools.com/tips/RawFTP.htm
 Note: Only shared commands will be supported
 
 ## Linux FTP
-!		dir		macdef		proxy		site
-$		disconnect	mdelete		sendport	size
-account		epsv4		mdir		put		status
-append		form		mget		pwd		struct
-ascii		get		mkdir		quit		system
-bell		glob		mls		quote		sunique
-binary		hash		mode		recv		tenex
-bye		help		modtime		reget		trace
-case		idle		mput		rstatus		type
-cd		image		newer		rhelp		user
-cdup		ipany		nmap		rename		umask
-chmod		ipv4		nlist		reset		verbose
-close		ipv6		ntrans		restart		?
-cr		lcd		open		rmdir
-delete		lpwd		passive		runique
-debug		ls		prompt		send
+!             dir         macdef    proxy     site
+$             disconnect  mdelete   sendport  size
+account       epsv4       mdir      put       status
+append        form        mget      pwd       struct
+ascii         get         mkdir     quit      system
+bell          glob        mls       quote     sunique
+binary        hash        mode      recv      tenex
+bye           help        modtime   reget     trace
+case          idle        mput      rstatus   type
+cd            image       newer     rhelp     user
+cdup          ipany       nmap      rename    umask
+chmod         ipv4        nlist     reset     verbose
+close         ipv6        ntrans    restart   ?
+cr            lcd         open      rmdir
+delete        lpwd        passive   runique
+debug         ls          prompt    send
 
 ## Windows FTP
-
+!           delete      literal     prompt      send
+?           debug       ls          put         status
+append      dir         mdelete     pwd         trace
+ascii       disconnect  mdir        quit        type
+bell        get         mget        quote       user
+binary      glob        mkdir       recv        verbose
+bye         hash        mls         remotehelp
+cd          help        mput        rename
+close       lcd         open        rmdir
 
 # Reference
 - https://cr.yp.to/ftp/retr.html
