@@ -54,13 +54,13 @@ void command_line()
         write("ftp> ");
 
         // Split string delimited by spaces
-        string[] lines = split(toLower(chomp(readln())));
+        string[] lines = split(chomp(readln()));
         if (lines.length < 1)
         {
             continue;
         }
         
-        input = lines[0];
+        input = toLower(lines[0]);
         command_args = lines[1..lines.length];
         
         foreach (command; commands)
