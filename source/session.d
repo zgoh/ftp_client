@@ -43,6 +43,9 @@ void session_connect(const string address, const string port = "21")
     session_cmd_recv();
 }
 
+/**
+    Start the active mode
+**/
 void session_active_mode()
 {
     dataSocket = new TcpSocket;
@@ -65,6 +68,10 @@ void session_cmd_send_recv(string message, const bool showMessage = true)
     session_cmd_recv(showMessage);
 }
 
+/**
+    Send a message using the command channel
+    @param message The message to send
+**/
 void session_cmd_send(const string message)
 {
     // Note: When sending message to FTP server, always append
@@ -76,6 +83,10 @@ void session_cmd_send(const string message)
     }
 }
 
+/**
+    Receive a message on the command channel
+    @param message The message to send
+**/
 void session_cmd_recv(bool showMessage = true)
 {
     char[1024] buffer;
@@ -94,6 +105,9 @@ void session_cmd_recv(bool showMessage = true)
         write(output);
 }
 
+/**
+    Receive a message on the data channel
+**/
 void session_data_recv()
 {
     char[1024] buffer;
@@ -113,6 +127,9 @@ void session_data_recv()
     write(output);
 }
 
+/**
+    Close the data channel after using
+**/
 void session_data_close()
 {
     if (dataSocket !is null)
@@ -143,6 +160,11 @@ void session_disconnect()
     session_data_close();
 }
 
+/**
+    This function will return address, port in the following format
+    h1,h2,h3,h4,p1,p2 where h1-h4 is the IP and p1-p2 is the port.
+    For port calculation, see below.
+**/
 string session_getDataAddrPort()
 {
     // TODO: Check if it's local/remote address
