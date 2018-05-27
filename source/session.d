@@ -40,7 +40,7 @@ void session_connect(const string address, const string port = "21")
     commandSocket = new TcpSocket;
     assert(commandSocket.isAlive);
 
-    commandSocket.blocking(true);
+    commandSocket.blocking(false);
     commandSocket.connect(new InternetAddress(address, to!ushort(port)));
 
     session_cmd_recv();
@@ -54,7 +54,7 @@ void session_active_mode()
     dataSocket = new TcpSocket;
     assert(dataSocket.isAlive);
 
-    dataSocket.blocking(true);
+    dataSocket.blocking(false);
 
     // Using 0 as port number will use a random port assigned by OS.
     dataSocket.bind(new InternetAddress(0));
@@ -65,10 +65,10 @@ void session_active_mode()
     Send some message and recv something back, will print the recv message
     @param message the message to send
 **/
-void session_cmd_send_recv(string message, bool continuous = false)
+void session_cmd_send_recv(string message)
 {
     session_cmd_send(message);
-    session_cmd_recv(continuous);
+    session_cmd_recv();
 }
 
 /**
@@ -91,32 +91,22 @@ void session_cmd_send(const string message)
 /**
     Receive a message on the command channel
 **/
-void session_cmd_recv(bool continuous = false)
+void session_cmd_recv()
 {
+    auto received = false;
     string output;
-    SocketSet socketSet = new SocketSet(1);
-    socketSet.add(commandSocket);
-    do
+    while (true)
     {
-        if (Socket.select(socketSet, null, null, seconds(1)) == 0)
-        {
-            break;
-        }
+        char[1024] buffer;
+        auto data_len = commandSocket.receive(buffer[]);
 
-        if (socketSet.isSet(commandSocket))
-        {
-            char[1024] buffer;
-            auto data_len = commandSocket.receive(buffer[]);
-            
-            if (data_len == Socket.ERROR)
-                writeln("Connection error.");
-            else if (data_len == 0)
-                break; // Connection closed
-            else
-                output ~= buffer[0..data_len];           
-        }
-    } while (continuous);
-    socketSet.reset();
+        if (received && data_len < 1)
+            break;
+        
+        received = received ? true : data_len > 0;
+        if (received)
+            output ~= buffer[0..data_len];
+    }
     write(output);
 }
 
@@ -125,33 +115,24 @@ void session_cmd_recv(bool continuous = false)
 **/
 void session_data_recv()
 {
+    auto received = false;
+    auto client = dataSocket.accept();
     string output;
-    SocketSet socketSet = new SocketSet(1);
-    socketSet.add(dataSocket);
-    do
+
+    while (true)
     {
-        if (Socket.select(socketSet, null, null, seconds(1)) == 0)
-        {
+        char[1024] buffer;
+        auto data_len = client.receive(buffer[]);
+
+        if (received && data_len < 1)
             break;
-        }
+        
+        received = received ? true : data_len > 0;
+        if (received)
+            output ~= buffer[0..data_len];
+    }
 
-        if (socketSet.isSet(dataSocket))
-        {
-            auto client = dataSocket.accept();
-
-            char[1024] buffer;
-            auto data_len = client.receive(buffer[]);
-            
-            if (data_len == Socket.ERROR)
-                writeln("Connection error.");
-            else if (data_len == 0)
-                break; // Connection closed
-            else
-                output ~= buffer[0..data_len];
-            client.close();          
-        }
-    } while (true);
-    socketSet.reset();
+    client.close();
     write(output);
 }
 
