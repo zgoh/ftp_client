@@ -65,10 +65,10 @@ void session_active_mode()
     Send some message and recv something back, will print the recv message
     @param message the message to send
 **/
-void session_cmd_send_recv(string message)
+void session_cmd_send_recv(string message, bool continuous = false)
 {
     session_cmd_send(message);
-    session_cmd_recv();
+    session_cmd_recv(continuous);
 }
 
 /**
@@ -89,47 +89,58 @@ void session_cmd_send(const string message)
 }
 
 /**
-    Receive a message on the command channel
+    Receive a message on the command channel,
+    use blocking for command channels because I think there are sometimes 
+    where the server reply slower.
 **/
-void session_cmd_recv()
+void session_cmd_recv(bool continuous = false)
 {
-    auto received = false;
     string output;
-    while (true)
+    SocketSet socketSet = new SocketSet(1);
+    socketSet.add(commandSocket);
+    do
     {
-        char[1024] buffer;
-        auto data_len = commandSocket.receive(buffer[]);
-
-        if (received && data_len < 1)
+        if (Socket.select(socketSet, null, null, seconds(1)) == 0)
             break;
         
-        received = received ? true : data_len > 0;
-        if (received)
-            output ~= buffer[0..data_len];
-    }
+        if (socketSet.isSet(commandSocket))
+        {
+            char[1024] buffer;
+            auto data_len = commandSocket.receive(buffer[]);
+            
+            if (data_len > 0)
+            {
+                output ~= buffer[0..data_len];
+                continue;
+            }
+            else if (data_len == Socket.ERROR)
+                writeln("Connection error.");
+            break; // Connection closed
+        }
+    } while (continuous);
     write(output);
 }
 
 /**
-    Receive a message on the data channel
+    Receive a message on the data channel, we use non blocking channels 
+    for data transfer
 **/
 void session_data_recv()
 {
-    auto received = false;
+    
     auto client = dataSocket.accept();
     string output;
 
+    /* Poll for data */
     while (true)
     {
         char[1024] buffer;
         auto data_len = client.receive(buffer[]);
 
-        if (received && data_len < 1)
+        if (data_len < 1)
             break;
         
-        received = received ? true : data_len > 0;
-        if (received)
-            output ~= buffer[0..data_len];
+        output ~= buffer[0..data_len];
     }
 
     client.close();

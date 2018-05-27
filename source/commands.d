@@ -200,7 +200,7 @@ static void cmd_user()
     
     // TODO: Hide password when sending
     message = "PASS " ~ pass;
-    session_cmd_send_recv(message);
+    session_cmd_send_recv(message, true);
 
     // TODO: Check if user/pass is correct, otherwise print error
 
