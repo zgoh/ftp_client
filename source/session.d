@@ -2,6 +2,9 @@ import std.socket;
 import std.stdio;
 import std.conv:to;
 import std.array:replace;
+import std.algorithm:endsWith;
+import std.string:indexOf;
+import core.time;
 
 /** Current supported FTP mode are active/passive **/
 enum FTP_Mode
@@ -62,10 +65,10 @@ void session_active_mode()
     Send some message and recv something back, will print the recv message
     @param message the message to send
 **/
-void session_cmd_send_recv(string message)
+void session_cmd_send_recv(string message, bool continuous = false)
 {
     session_cmd_send(message);
-    session_cmd_recv();
+    session_cmd_recv(continuous);
 }
 
 /**
@@ -80,25 +83,40 @@ void session_cmd_send(const string message)
     if (sent == Socket.ERROR)
     {
         writeln("Sending error");
+
+        // TODO: Return false?
     }
 }
 
 /**
     Receive a message on the command channel
 **/
-void session_cmd_recv()
+void session_cmd_recv(bool continuous = false)
 {
-    char[1024] buffer;
-    size_t data_len;
     string output;
+    SocketSet socketSet = new SocketSet(1);
+    socketSet.add(commandSocket);
     do
     {
-        data_len = commandSocket.receive(buffer);
-        if (data_len > 0)
+        if (Socket.select(socketSet, null, null, seconds(1)) == 0)
         {
-            output ~= buffer[0..data_len];
+            break;
         }
-    } while (data_len == 0);
+
+        if (socketSet.isSet(commandSocket))
+        {
+            char[1024] buffer;
+            auto data_len = commandSocket.receive(buffer[]);
+            
+            if (data_len == Socket.ERROR)
+                writeln("Connection error.");
+            else if (data_len == 0)
+                break; // Connection closed
+            else
+                output ~= buffer[0..data_len];           
+        }
+    } while (continuous);
+    socketSet.reset();
     write(output);
 }
 
@@ -107,20 +125,33 @@ void session_cmd_recv()
 **/
 void session_data_recv()
 {
-    char[1024] buffer;
-    size_t data_len;
     string output;
-
-    auto client = dataSocket.accept();
+    SocketSet socketSet = new SocketSet(1);
+    socketSet.add(dataSocket);
     do
     {
-        data_len = client.receive(buffer);
-        if (data_len > 0)
+        if (Socket.select(socketSet, null, null, seconds(1)) == 0)
         {
-            output ~= buffer[0..data_len];
+            break;
         }
-    } while (data_len == 0);
-    client.close();
+
+        if (socketSet.isSet(dataSocket))
+        {
+            auto client = dataSocket.accept();
+
+            char[1024] buffer;
+            auto data_len = client.receive(buffer[]);
+            
+            if (data_len == Socket.ERROR)
+                writeln("Connection error.");
+            else if (data_len == 0)
+                break; // Connection closed
+            else
+                output ~= buffer[0..data_len];
+            client.close();          
+        }
+    } while (true);
+    socketSet.reset();
     write(output);
 }
 

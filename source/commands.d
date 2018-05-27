@@ -194,14 +194,16 @@ static void cmd_user()
 
     if (pass == null)
     {
-        //TODO: Hide password and typing
+        // TODO: Hide password and typing
         writef("PASS: ");
         pass= chomp(readln());
     }
     
-    //TODO: Hide password when sending
+    // TODO: Hide password when sending
     message = "PASS " ~ pass;
-    session_cmd_send_recv(message);
+    session_cmd_send_recv(message, true);
+
+    // TODO: Check if user/pass is correct, otherwise print error
 
     // session_cmd_send_recv("SYST");
 }
