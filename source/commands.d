@@ -98,7 +98,10 @@ void clear_args()
 **/
 static void cmd_quit()
 {
-    session_disconnect();
+    if (session_isConnected())
+    {
+        session_disconnect();
+    }
     running = false;
 }
 
@@ -159,6 +162,11 @@ static void cmd_open()
 **/
 static void cmd_disconnect()
 {
+    if (!session_isConnected())
+    {
+        writeln("Not Connected.");
+        return;
+    }
     session_disconnect();
 }
 

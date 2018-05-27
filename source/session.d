@@ -47,6 +47,20 @@ void session_connect(const string address, const string port = "21")
 }
 
 /**
+    Disconnect the current FTP session
+**/
+void session_disconnect()
+{
+    session_cmd_send_recv("QUIT\r\n");
+
+    commandSocket.shutdown(SocketShutdown.BOTH);
+    commandSocket.close();
+    commandSocket = null;
+
+    session_data_close();
+}
+
+/**
     Start the active mode
 **/
 void session_active_mode()
@@ -127,7 +141,6 @@ void session_cmd_recv(bool continuous = false)
 **/
 void session_data_recv()
 {
-    
     auto client = dataSocket.accept();
     string output;
 
@@ -158,26 +171,6 @@ void session_data_close()
         dataSocket.close();
     }
     dataSocket = null;
-}
-
-/**
-    Disconnect the current FTP session
-**/
-void session_disconnect()
-{
-    if (!session_isConnected())
-    {
-        writeln("Not Connected.");
-        return;
-    }
-
-    session_cmd_send_recv("QUIT\r\n");
-
-    commandSocket.shutdown(SocketShutdown.BOTH);
-    commandSocket.close();
-    commandSocket = null;
-
-    session_data_close();
 }
 
 /**
