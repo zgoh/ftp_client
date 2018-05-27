@@ -31,8 +31,7 @@ const static CommandPair[] commands = [
     CommandPair(["close", "disconnect"], &cmd_disconnect),
     CommandPair(["user"], &cmd_user),
     CommandPair(["ls"], &cmd_list),
-    CommandPair(["cd"], &cmd_change_dir),
-    CommandPair(["test"], &cmd_test)
+    CommandPair(["cd"], &cmd_change_dir)
 ];
 
 /**
@@ -273,16 +272,4 @@ static void cmd_change_dir()
 static void cmd_invalid()
 {
     writeln("Invalid command.");
-}
-
-/**
-    NOTE: For testing only
-**/
-static void cmd_test()
-{
-    writeln(command_args);
-    if (command_args.length == 1)
-    {
-        session_cmd_send_recv(command_args[0]);
-    }
 }
